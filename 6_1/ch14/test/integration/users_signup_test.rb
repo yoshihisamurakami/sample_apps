@@ -4,6 +4,7 @@ class UsersSignupTest < ActionDispatch::IntegrationTest
 
   def setup
     ActionMailer::Base.deliveries.clear
+    @notification_count = Notification.count
   end
 
   test "invalid signup information" do
@@ -43,5 +44,10 @@ class UsersSignupTest < ActionDispatch::IntegrationTest
     follow_redirect!
     assert_template 'users/show'
     assert is_logged_in?
+    assert_equal @notification_count + 1, Notification.count
+    notification = Notification.last
+    assert_equal user.id, notification.user_id
+    assert notification.login?
+    assert_equal '初回ログインありがとうございます。', notification.message 
   end
 end
