@@ -21,19 +21,35 @@ class RelationshipTest < ActiveSupport::TestCase
     assert_not @relationship.valid?
   end
 
-  test "Relationship.recent_followers_count" do
+  # Relationship.recent_followers_count のテスト
+  test "Relationship.recent_followers_count: 1人からフォローされているとき" do
     Relationship.destroy_all
-    @relationship.save
+    users(:archer).follow(users(:michael))
+    assert_equal 0, Relationship.recent_followers_count(users(:michael).id)
+  end
 
-    Relationship.create!(
-      follower_id: users(:lana).id,
-      followed_id: users(:archer).id
-    )
-    Relationship.create!(
-      follower_id: users(:archer).id,
-      followed_id: users(:lana).id
-    )
-    assert_equal 1, Relationship.recent_followers_count(users(:archer).id) # :archer は :michael他1名からフォローされている
-    assert_equal 0, Relationship.recent_followers_count(users(:lana).id)   # :lana は 1名からしかフォローされていない
+  test "Relationship.recent_followers_count: 2人からフォローされているとき" do
+    Relationship.destroy_all
+    users(:archer).follow(users(:michael))
+    users(:lana).follow(users(:michael))
+    assert_equal 1, Relationship.recent_followers_count(users(:michael).id)
+  end
+
+  test "Relationship.recent_followers_count: 3人からフォローされているとき" do
+    Relationship.destroy_all
+    users(:archer).follow(users(:michael))
+    users(:lana).follow(users(:michael))
+    users(:malory).follow(users(:michael))
+    assert_equal 2, Relationship.recent_followers_count(users(:michael).id)
+  end
+
+  test "Relationship.recent_followers_count: 2人からフォローされたあと、5分以上経ったあとに1人からフォローされたとき" do
+    Relationship.destroy_all
+    users(:archer).follow(users(:michael))
+    users(:lana).follow(users(:michael))
+    Relationship.update_all(created_at: Time.current - 5.minutes)
+
+    users(:malory).follow(users(:michael))
+    assert_equal 0, Relationship.recent_followers_count(users(:michael).id)
   end
 end
