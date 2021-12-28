@@ -1,3 +1,4 @@
+# 通知
 class Notification < ApplicationRecord
   belongs_to :user
   enum category: [:login, :followed]

@@ -38,6 +38,14 @@ class FollowingTest < ActionDispatch::IntegrationTest
     end
   end
 
+  test "フォロー後の通知データを確認" do
+    post relationships_path, params: { followed_id: @other.id }
+    notification = Notification.last
+    assert_equal @other.id, notification.user_id
+    assert_equal "followed", notification.category
+    assert_equal "Michael Exampleさんにフォローされました", notification.message
+  end
+
   test "should unfollow a user the standard way" do
     @user.follow(@other)
     relationship = @user.active_relationships.find_by(followed_id: @other.id)

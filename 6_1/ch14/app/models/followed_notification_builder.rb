@@ -1,3 +1,4 @@
+# ユーザーがフォローされたときの通知を作成
 class FollowedNotificationBuilder
   def initialize(user:, follower:)
     @user = user
@@ -37,12 +38,15 @@ class FollowedNotificationBuilder
   end
 
   def update_message!(notification)
+    notification.update!(message: updated_message(notification))
+  end
+
+  def updated_message(notification)
     if recent_followers_count.zero?
-      message = first_followed_message
+      first_followed_message
     else
-      message = "#{first_follower(notification.message)}さん他#{recent_followers_count}名にフォローされました"
+      "#{first_follower(notification.message)}さん他#{recent_followers_count}名にフォローされました"
     end
-    notification.update!(message: message)
   end
 
   def first_follower(message)
